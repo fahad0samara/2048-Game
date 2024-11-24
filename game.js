@@ -5,6 +5,12 @@ class Game2048 {
         this.score = 0;
         this.bestScore = parseInt(localStorage.getItem('bestScore')) || 0;
         this.gameStarted = false;
+        this.moveHistory = [];
+        this.startTime = null;
+        this.timerInterval = null;
+        this.soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+        this.achievements = new Set(JSON.parse(localStorage.getItem('achievements')) || []);
+        
         this.initGrid();
         this.setupEventListeners();
         this.addRandomTile();
@@ -12,6 +18,8 @@ class Game2048 {
         this.renderGrid();
         this.updateScores();
         this.setupGameTips();
+        this.updateSoundButton();
+        this.renderAchievements();
     }
 
     initGrid() {
@@ -24,8 +32,7 @@ class Game2048 {
         document.addEventListener('keydown', (e) => {
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
                 if (!this.gameStarted) {
-                    this.gameStarted = true;
-                    this.showGameTip("Great start! Try to keep your highest numbers in a corner.");
+                    this.startGame();
                 }
                 switch(e.key) {
                     case 'ArrowUp': this.move('up'); break;
@@ -36,8 +43,210 @@ class Game2048 {
             }
         });
 
+        // Touch support
+        let touchStartX, touchStartY;
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            if (!touchStartX || !touchStartY) return;
+
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+
+            if (Math.abs(deltaX) > 50 || Math.abs(deltaY) > 50) {
+                if (!this.gameStarted) {
+                    this.startGame();
+                }
+                
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    if (deltaX > 0) {
+                        this.move('right');
+                    } else {
+                        this.move('left');
+                    }
+                } else {
+                    if (deltaY > 0) {
+                        this.move('down');
+                    } else {
+                        this.move('up');
+                    }
+                }
+            }
+        });
+
         document.getElementById('restart-btn').addEventListener('click', () => {
             this.restartGame();
+        });
+
+        document.getElementById('undo-btn').addEventListener('click', () => {
+            this.undo();
+        });
+
+        document.getElementById('sound-btn').addEventListener('click', () => {
+            this.toggleSound();
+        });
+    }
+
+    startGame() {
+        this.gameStarted = true;
+        this.startTime = Date.now();
+        this.updateTimer();
+        this.timerInterval = setInterval(() => this.updateTimer(), 1000);
+        this.showGameTip("Great start! Try to keep your highest numbers in a corner.");
+    }
+
+    updateTimer() {
+        const seconds = Math.floor((Date.now() - this.startTime) / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        document.getElementById('time').textContent = 
+            `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+
+    toggleSound() {
+        this.soundEnabled = !this.soundEnabled;
+        localStorage.setItem('soundEnabled', this.soundEnabled);
+        this.updateSoundButton();
+    }
+
+    updateSoundButton() {
+        const soundBtn = document.getElementById('sound-btn');
+        soundBtn.textContent = this.soundEnabled ? '🔊' : '🔈';
+    }
+
+    playSound(type) {
+        if (!this.soundEnabled) return;
+        
+        const sounds = {
+            merge: [440, 0.1],
+            move: [220, 0.05],
+            achievement: [660, 0.15]
+        };
+
+        const [frequency, duration] = sounds[type] || sounds.move;
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = frequency;
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + duration);
+    }
+
+    move(direction) {
+        // Save current state for undo
+        this.moveHistory.push({
+            grid: JSON.parse(JSON.stringify(this.grid)),
+            score: this.score
+        });
+        document.getElementById('undo-btn').disabled = false;
+
+        let moved = false;
+        const rotatedGrid = this.rotateGrid(direction);
+        
+        for (let r = 0; r < this.gridSize; r++) {
+            const row = rotatedGrid[r].filter(cell => cell !== 0);
+            
+            for (let c = 0; c < row.length - 1; c++) {
+                if (row[c] === row[c + 1]) {
+                    row[c] *= 2;
+                    this.score += row[c];
+                    row.splice(c + 1, 1);
+                    moved = true;
+                    this.playSound('merge');
+                    this.checkAchievement(row[c]);
+                }
+            }
+            
+            while (row.length < this.gridSize) {
+                row.push(0);
+            }
+            
+            rotatedGrid[r] = row;
+        }
+        
+        this.grid = this.unrotateGrid(rotatedGrid, direction);
+        
+        if (moved) {
+            this.addRandomTile();
+            this.renderGrid();
+            this.updateScores();
+            this.checkGameStatus();
+            this.playSound('move');
+        }
+    }
+
+    undo() {
+        if (this.moveHistory.length === 0) return;
+        
+        const lastState = this.moveHistory.pop();
+        this.grid = lastState.grid;
+        this.score = lastState.score;
+        
+        this.renderGrid();
+        this.updateScores();
+        
+        document.getElementById('undo-btn').disabled = this.moveHistory.length === 0;
+    }
+
+    checkAchievement(value) {
+        const achievements = {
+            '64': { emoji: '🎯', text: 'First 64 tile!' },
+            '128': { emoji: '🎮', text: 'Power player: 128 reached!' },
+            '256': { emoji: '⭐', text: 'Star player: 256 achieved!' },
+            '512': { emoji: '🏆', text: 'Trophy hunter: 512 conquered!' },
+            '1024': { emoji: '👑', text: 'Crown worthy: 1024 mastered!' },
+            '2048': { emoji: '🎉', text: 'Game master: 2048 reached!' }
+        };
+
+        if (achievements[value] && !this.achievements.has(String(value))) {
+            this.achievements.add(String(value));
+            localStorage.setItem('achievements', JSON.stringify([...this.achievements]));
+            this.showAchievement(achievements[value]);
+            this.playSound('achievement');
+        }
+    }
+
+    showAchievement(achievement) {
+        const achievementsList = document.getElementById('achievements-list');
+        const achievementElement = document.createElement('div');
+        achievementElement.className = 'achievement-item';
+        achievementElement.innerHTML = `
+            <span class="emoji">${achievement.emoji}</span>
+            <span class="text">${achievement.text}</span>
+        `;
+        achievementsList.appendChild(achievementElement);
+    }
+
+    renderAchievements() {
+        const achievementsList = document.getElementById('achievements-list');
+        achievementsList.innerHTML = '';
+        
+        const achievements = {
+            '64': { emoji: '🎯', text: 'First 64 tile!' },
+            '128': { emoji: '🎮', text: 'Power player: 128 reached!' },
+            '256': { emoji: '⭐', text: 'Star player: 256 achieved!' },
+            '512': { emoji: '🏆', text: 'Trophy hunter: 512 conquered!' },
+            '1024': { emoji: '👑', text: 'Crown worthy: 1024 mastered!' },
+            '2048': { emoji: '🎉', text: 'Game master: 2048 reached!' }
+        };
+
+        this.achievements.forEach(value => {
+            if (achievements[value]) {
+                this.showAchievement(achievements[value]);
+            }
         });
     }
 
@@ -66,12 +275,18 @@ class Game2048 {
         this.grid = [];
         this.score = 0;
         this.gameStarted = false;
+        this.moveHistory = [];
+        this.startTime = null;
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
         this.initGrid();
         this.addRandomTile();
         this.addRandomTile();
         this.renderGrid();
         this.updateScores();
         this.showGameTip("New game started! Good luck!");
+        document.getElementById('undo-btn').disabled = true;
+        document.getElementById('time').textContent = '00:00';
     }
 
     addRandomTile() {
@@ -87,39 +302,6 @@ class Game2048 {
         if (emptyCells.length > 0) {
             const {r, c} = emptyCells[Math.floor(Math.random() * emptyCells.length)];
             this.grid[r][c] = Math.random() < 0.9 ? 2 : 4;
-        }
-    }
-
-    move(direction) {
-        let moved = false;
-        const rotatedGrid = this.rotateGrid(direction);
-        
-        for (let r = 0; r < this.gridSize; r++) {
-            const row = rotatedGrid[r].filter(cell => cell !== 0);
-            
-            for (let c = 0; c < row.length - 1; c++) {
-                if (row[c] === row[c + 1]) {
-                    row[c] *= 2;
-                    this.score += row[c];
-                    row.splice(c + 1, 1);
-                    moved = true;
-                }
-            }
-            
-            while (row.length < this.gridSize) {
-                row.push(0);
-            }
-            
-            rotatedGrid[r] = row;
-        }
-        
-        this.grid = this.unrotateGrid(rotatedGrid, direction);
-        
-        if (moved) {
-            this.addRandomTile();
-            this.renderGrid();
-            this.updateScores();
-            this.checkGameStatus();
         }
     }
 
