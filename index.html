@@ -3,40 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2048 Deluxe</title>
+    <title>2048 Game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <div class="game-header">
             <div class="scores-container">
-                <div id="score">Score: 0</div>
-                <div id="best-score">Best: 0</div>
-                <div id="combo-counter">Combo: 0x</div>
+                <div class="score-box" id="score">Score: 0</div>
+                <div class="score-box" id="best-score">Best: 0</div>
             </div>
-            <div class="game-controls">
+            
+            <div class="controls-container">
                 <select id="theme-selector">
                     <option value="classic">Classic Theme</option>
                     <option value="dark">Dark Mode</option>
                     <option value="neon">Neon</option>
                     <option value="pastel">Pastel</option>
                 </select>
-                <select id="game-mode-selector">
-                    <option value="classic">Classic Mode</option>
-                    <option value="timeAttack">Time Attack</option>
-                    <option value="infinity">Infinity Mode</option>
-                </select>
+                <button id="new-game">New Game</button>
+                <button id="undo">Undo</button>
             </div>
-            <div id="time-attack-timer" class="timer"></div>
         </div>
 
         <div class="game-container">
             <div id="grid"></div>
         </div>
 
-        <div class="game-controls">
-            <button id="new-game">New Game</button>
-            <button id="undo">Undo</button>
+        <div class="instructions">
+            <h2>How to Play</h2>
+            <ul>
+                <li>Use arrow keys or WASD to move tiles</li>
+                <li>When two tiles with the same number touch, they merge into one!</li>
+                <li>Keep merging tiles to reach 2048</li>
+                <li>Try to get the highest score possible</li>
+            </ul>
+            <div class="controls-guide">
+                <p>Controls:</p>
+                <p>↑ or W = Up</p>
+                <p>↓ or S = Down</p>
+                <p>← or A = Left</p>
+                <p>→ or D = Right</p>
+            </div>
         </div>
     </div>
     <script src="game.js"></script>
