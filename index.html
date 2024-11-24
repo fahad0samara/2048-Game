@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>2048 Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title-section">
+                <h1>2048</h1>
+                <div class="timer">Time: <span id="time">00:00</span></div>
+            </div>
+            <div class="scores">
+                <div class="score-container">
+                    <div class="score-label">Score</div>
+                    <div id="score">0</div>
+                </div>
+                <div class="score-container">
+                    <div class="score-label">Best</div>
+                    <div id="best-score">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="game-container">
+            <div id="grid"></div>
+        </div>
+        <div class="controls">
+            <button id="undo-btn" disabled>Undo</button>
+            <button id="restart-btn">New Game</button>
+            <button id="sound-btn">🔊</button>
+        </div>
+        <div class="instructions">
+            Use arrow keys or swipe to play. Combine tiles to reach 2048!
+        </div>
+        <div id="game-tip" class="game-tip"></div>
+        <div id="achievements" class="achievements">
+            <h3>Achievements</h3>
+            <div id="achievements-list"></div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>

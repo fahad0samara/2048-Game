@@ -1,0 +1,249 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #faf8ef;
+}
+
+.container {
+    text-align: center;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.title-section {
+    text-align: left;
+}
+
+.timer {
+    color: #776e65;
+    font-size: 20px;
+    margin-top: 5px;
+}
+
+.scores {
+    display: flex;
+    gap: 10px;
+}
+
+h1 {
+    color: #776e65;
+    font-size: 80px;
+    margin: 0;
+}
+
+.score-container {
+    background-color: #bbada0;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+}
+
+.score-label {
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+#score {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+#best-score {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.game-container {
+    background-color: #bbada0;
+    border-radius: 6px;
+    width: 500px;
+    height: 500px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 15px;
+    padding: 15px;
+}
+
+.tile {
+    background-color: #cdc1b4;
+    border-radius: 3px;
+    text-align: center;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease-in-out;
+}
+
+.tile-2 { background-color: #eee4da; color: #776e65; }
+.tile-4 { background-color: #ede0c8; color: #776e65; }
+.tile-8 { background-color: #f2b179; color: white; }
+.tile-16 { background-color: #f59563; color: white; }
+.tile-32 { background-color: #f67c5f; color: white; }
+.tile-64 { background-color: #f65e3b; color: white; }
+.tile-128 { 
+    background-color: #edcf72; 
+    color: white;
+    font-size: 45px;
+}
+.tile-256 { 
+    background-color: #edcc61; 
+    color: white;
+    font-size: 45px;
+}
+.tile-512 { 
+    background-color: #edc850; 
+    color: white;
+    font-size: 45px;
+}
+.tile-1024 { 
+    background-color: #edc53f; 
+    color: white;
+    font-size: 34px;
+}
+.tile-2048 { 
+    background-color: #edc22e; 
+    color: white;
+    font-size: 34px;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.controls button {
+    padding: 10px 20px;
+    font-size: 18px;
+    background-color: #8f7a66;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.controls button:hover:not(:disabled) {
+    background-color: #7f6a56;
+}
+
+.controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#sound-btn {
+    width: 60px;
+    font-size: 24px;
+}
+
+.instructions {
+    margin-top: 20px;
+    color: #776e65;
+    font-size: 16px;
+}
+
+#restart-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 18px;
+    background-color: #8f7a66;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#restart-btn:hover {
+    background-color: #7f6a56;
+}
+
+.game-tip {
+    margin-top: 15px;
+    padding: 10px;
+    color: #776e65;
+    font-style: italic;
+    min-height: 40px;
+    text-align: center;
+}
+
+.highlight {
+    animation: highlight 1s ease-in-out;
+}
+
+@keyframes highlight {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); color: #f65e3b; }
+    100% { transform: scale(1); }
+}
+
+.new-tile {
+    animation: appear 0.2s ease-in-out;
+}
+
+@keyframes appear {
+    0% { opacity: 0; transform: scale(0); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.merged {
+    animation: merge 0.2s ease-in-out;
+}
+
+@keyframes merge {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.achievements {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #faf8ef;
+    border-radius: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.achievements h3 {
+    color: #776e65;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.achievement-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    background-color: #eee4da;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    animation: achievementUnlock 0.5s ease-out;
+}
+
+.achievement-item .emoji {
+    font-size: 20px;
+}
+
+.achievement-item .text {
+    color: #776e65;
+    flex-grow: 1;
+}
+
+@keyframes achievementUnlock {
+    0% { transform: translateX(-100%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+}
