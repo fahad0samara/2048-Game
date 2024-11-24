@@ -71,73 +71,115 @@ body {
     align-items: center;
     min-height: 100vh;
     background: var(--bg-color);
+    padding: 20px;
     transition: background-color 0.3s;
 }
 
 .container {
+    width: 100%;
+    max-width: 500px;
     text-align: center;
     padding: 20px;
 }
 
 .game-header {
     margin-bottom: 20px;
+    width: 100%;
 }
 
 .scores-container {
     display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
-    font-size: 1.2em;
+    font-size: clamp(1rem, 3vw, 1.2rem);
     color: var(--text-color);
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .game-container {
     position: relative;
     margin: 0 auto;
-    width: 400px;
+    width: 100%;
+    max-width: 500px;
+    aspect-ratio: 1;
 }
 
 #grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+    gap: min(2vw, 10px);
     background: var(--grid-color);
-    padding: 10px;
+    padding: min(2vw, 10px);
     border-radius: 6px;
+    width: 100%;
+    height: 100%;
 }
 
 .tile {
-    width: 90px;
-    height: 90px;
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%;
     background: var(--tile-color);
     border-radius: 3px;
+}
+
+.tile-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 35px;
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
     font-weight: bold;
     color: var(--text-color);
 }
 
-.tile-2 { background: #eee4da; }
-.tile-4 { background: #ede0c8; }
-.tile-8 { background: #f2b179; color: #f9f6f2; }
-.tile-16 { background: #f59563; color: #f9f6f2; }
-.tile-32 { background: #f67c5f; color: #f9f6f2; }
-.tile-64 { background: #f65e3b; color: #f9f6f2; }
-.tile-128 { background: #edcf72; color: #f9f6f2; }
-.tile-256 { background: #edcc61; color: #f9f6f2; }
-.tile-512 { background: #edc850; color: #f9f6f2; }
-.tile-1024 { background: #edc53f; color: #f9f6f2; }
-.tile-2048 { background: #edc22e; color: #f9f6f2; }
+.tile-2 .tile-inner { background: #eee4da; }
+.tile-4 .tile-inner { background: #ede0c8; }
+.tile-8 .tile-inner { background: #f2b179; color: #f9f6f2; }
+.tile-16 .tile-inner { background: #f59563; color: #f9f6f2; }
+.tile-32 .tile-inner { background: #f67c5f; color: #f9f6f2; }
+.tile-64 .tile-inner { background: #f65e3b; color: #f9f6f2; }
+.tile-128 .tile-inner { 
+    background: #edcf72; 
+    color: #f9f6f2;
+    font-size: clamp(1.2rem, 4vw, 2rem);
+}
+.tile-256 .tile-inner { 
+    background: #edcc61; 
+    color: #f9f6f2;
+    font-size: clamp(1.2rem, 4vw, 2rem);
+}
+.tile-512 .tile-inner { 
+    background: #edc850; 
+    color: #f9f6f2;
+    font-size: clamp(1.2rem, 4vw, 2rem);
+}
+.tile-1024 .tile-inner { 
+    background: #edc53f; 
+    color: #f9f6f2;
+    font-size: clamp(1rem, 3.5vw, 1.8rem);
+}
+.tile-2048 .tile-inner { 
+    background: #edc22e; 
+    color: #f9f6f2;
+    font-size: clamp(1rem, 3.5vw, 1.8rem);
+}
 
 .game-controls {
     margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
 }
 
 button {
-    padding: 10px 20px;
-    margin: 5px;
+    padding: clamp(8px, 2vw, 15px) clamp(15px, 3vw, 25px);
     border: none;
     border-radius: 5px;
     background: var(--button-color);
@@ -145,6 +187,7 @@ button {
     font-weight: bold;
     cursor: pointer;
     transition: background 0.3s ease;
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem);
 }
 
 button:hover {
@@ -181,13 +224,15 @@ button:disabled {
 }
 
 select {
-    padding: 8px;
-    margin: 5px;
+    padding: clamp(6px, 1.5vw, 10px);
     border-radius: 5px;
     border: 1px solid var(--grid-color);
     background: var(--bg-color);
     color: var(--text-color);
     cursor: pointer;
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+    width: auto;
+    min-width: 120px;
 }
 
 select:hover {
@@ -195,7 +240,7 @@ select:hover {
 }
 
 .timer {
-    font-size: 1.2em;
+    font-size: clamp(1rem, 3vw, 1.2rem);
     color: var(--text-color);
     margin: 10px 0;
 }
@@ -203,4 +248,26 @@ select:hover {
 #combo-counter {
     color: var(--text-color);
     font-weight: bold;
+}
+
+/* Media Queries for very small screens */
+@media (max-width: 350px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .scores-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .game-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    select {
+        width: 100%;
+    }
 }

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2048 Deluxe</title>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -30,87 +31,12 @@
         </div>
 
         <div class="game-container">
-            <div class="power-meter-container">
-                <div class="power-meter-label">Ultimate Power</div>
-                <div class="power-meter-track">
-                    <div id="power-meter" class="power-meter-fill"></div>
-                </div>
-            </div>
             <div id="grid"></div>
-            <div id="special-tile-alert" class="special-tile-alert"></div>
-            <div class="streak-counter" id="streak-counter">Streak: 0x</div>
-            <div class="multiplier-display" id="multiplier-display">x1</div>
         </div>
 
         <div class="game-controls">
-            <div class="ultimate-button" id="ultimate-button" disabled>
-                <span class="ultimate-icon">⚡</span>
-                Ultimate Power
-            </div>
-            
-            <div class="special-tiles-info">
-                <div class="special-tile-type">
-                    <span class="tile-icon x2">x2</span>
-                    Score Multiplier
-                </div>
-                <div class="special-tile-type">
-                    <span class="tile-icon bomb">💣</span>
-                    Area Clear
-                </div>
-                <div class="special-tile-type">
-                    <span class="tile-icon wild">🌟</span>
-                    Wild Transform
-                </div>
-                <div class="special-tile-type">
-                    <span class="tile-icon golden">👑</span>
-                    Golden Power
-                </div>
-            </div>
-        </div>
-
-        <div class="game-footer">
-            <div class="power-ups">
-                <button id="freeze-power" class="power-up-btn">🧊 Freeze (3)</button>
-                <button id="merge-power" class="power-up-btn">🔄 Merge (2)</button>
-                <button id="clear-power" class="power-up-btn">💫 Clear (1)</button>
-            </div>
-            <div class="game-stats">
-                <div id="moves">Moves: 0</div>
-                <div id="time">Time: 0:00</div>
-                <div id="max-combo">Best Combo: 0x</div>
-            </div>
-        </div>
-
-        <div class="controls">
-            <button id="undo-btn" disabled>↩️ Undo</button>
-            <button id="restart-btn">🔄 New Game</button>
-            <button id="sound-btn">🔊</button>
-        </div>
-
-        <div class="instructions">
-            Use arrow keys or swipe to play. Combine tiles to reach 2048!
-        </div>
-
-        <div id="game-tip" class="game-tip"></div>
-
-        <div class="stats-section">
-            <div class="stats-container">
-                <h3>Statistics</h3>
-                <div class="stat-item">Games Played: <span id="games-played">0</span></div>
-                <div class="stat-item">Best Time: <span id="best-time">--:--</span></div>
-                <div class="stat-item">Highest Tile: <span id="highest-tile">0</span></div>
-            </div>
-            <div id="achievements" class="achievements">
-                <h3>Achievements</h3>
-                <div id="achievements-list"></div>
-            </div>
-        </div>
-
-        <div class="challenge-panel" id="challenge-panel">
-            <h3>Daily Challenges</h3>
-            <div class="challenge-list" id="challenge-list">
-                <!-- Challenges will be dynamically added here -->
-            </div>
+            <button id="new-game">New Game</button>
+            <button id="undo">Undo</button>
         </div>
     </div>
     <script src="game.js"></script>
