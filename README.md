@@ -2,6 +2,9 @@
 
 A smooth, responsive implementation of the classic 2048 puzzle game using HTML, CSS, and JavaScript.
 
+![screencapture-localhost-8000-2024-11-24-04_46_34](https://github.com/user-attachments/assets/36db2a5e-bbf4-40ba-87b6-7244f2f556da)
+
+
 ## Features
 
 - 4x4 grid game board
