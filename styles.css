@@ -6,6 +6,11 @@
     --tile-color: #eee4da;
     --button-color: #8f7a66;
     --button-hover: #7f6a56;
+    --header-bg: #f5f5f5;
+    --border-color: #ccc;
+    --tile-2-color: #eee4da;
+    --tile-4-color: #ede0c8;
+    --tile-8-color: #f2b179;
 }
 
 /* Dark Theme */
@@ -16,6 +21,11 @@
     --tile-color: #333333;
     --button-color: #666666;
     --button-hover: #555555;
+    --header-bg: #333333;
+    --border-color: #555555;
+    --tile-2-color: #333333;
+    --tile-4-color: #444444;
+    --tile-8-color: #f2b179;
 }
 
 /* Neon Theme */
@@ -26,6 +36,11 @@
     --tile-color: #000000;
     --button-color: #00aa00;
     --button-hover: #008800;
+    --header-bg: #000000;
+    --border-color: #00ff00;
+    --tile-2-color: #000000;
+    --tile-4-color: #00aa00;
+    --tile-8-color: #00ff00;
 }
 
 /* Pastel Theme */
@@ -36,6 +51,11 @@
     --tile-color: #e4ebf1;
     --button-color: #95afc0;
     --button-hover: #7f97a9;
+    --header-bg: #f0f4f8;
+    --border-color: #d1e3f0;
+    --tile-2-color: #e4ebf1;
+    --tile-4-color: #95afc0;
+    --tile-8-color: #f2b179;
 }
 
 body {
@@ -396,4 +416,87 @@ h1 {
 
 .power-up.active {
     animation: tileGlow 1s infinite;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: var(--header-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.game-controls {
+    display: flex;
+    gap: 10px;
+}
+
+#game-mode-selector, #theme-selector {
+    padding: 8px;
+    border-radius: 4px;
+    border: 2px solid var(--border-color);
+    background: var(--bg-color);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#game-mode-selector:hover, #theme-selector:hover {
+    border-color: var(--tile-4-color);
+}
+
+.timer {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--text-color);
+    padding: 5px 10px;
+    background: var(--tile-2-color);
+    border-radius: 4px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+#combo-counter {
+    font-size: 1.2em;
+    color: var(--tile-8-color);
+    text-shadow: 0 0 5px var(--tile-8-color);
+    transition: all 0.3s ease;
+}
+
+.game-footer {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.game-stats {
+    display: flex;
+    gap: 15px;
+    font-size: 0.9em;
+    color: var(--text-color);
+}
+
+#max-combo {
+    color: var(--tile-8-color);
+    font-weight: bold;
+}
+
+/* Animation for combo counter */
+@keyframes comboScale {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.combo-active {
+    animation: comboScale 0.3s ease;
 }

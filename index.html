@@ -7,51 +7,44 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <div class="title-section">
-                <h1>2048</h1>
-                <div class="stats">
-                    <div class="timer">Time: <span id="time">00:00</span></div>
-                    <div class="moves">Moves: <span id="moves">0</span></div>
-                </div>
+        <div class="game-header">
+            <div class="scores-container">
+                <div id="score">Score: 0</div>
+                <div id="best-score">Best: 0</div>
+                <div id="combo-counter">Combo: 0x</div>
             </div>
-            <div class="scores">
-                <div class="score-container">
-                    <div class="score-label">Score</div>
-                    <div id="score">0</div>
-                </div>
-                <div class="score-container">
-                    <div class="score-label">Best</div>
-                    <div id="best-score">0</div>
-                </div>
+            <div class="game-controls">
+                <select id="theme-selector">
+                    <option value="classic">Classic Theme</option>
+                    <option value="dark">Dark Mode</option>
+                    <option value="neon">Neon</option>
+                    <option value="pastel">Pastel</option>
+                </select>
+                <select id="game-mode-selector">
+                    <option value="classic">Classic Mode</option>
+                    <option value="timeAttack">Time Attack</option>
+                    <option value="infinity">Infinity Mode</option>
+                </select>
             </div>
-        </div>
-
-        <div class="game-settings">
-            <select id="theme-selector">
-                <option value="classic">Classic Theme</option>
-                <option value="dark">Dark Mode</option>
-                <option value="neon">Neon</option>
-                <option value="pastel">Pastel</option>
-            </select>
-            <div class="power-ups">
-                <button id="freeze-btn" class="power-up" title="Freeze: Stop new tiles for 3 moves">🧊 x<span id="freeze-count">3</span></button>
-                <button id="merge-btn" class="power-up" title="Merge: Combine any two adjacent tiles">🔄 x<span id="merge-count">2</span></button>
-                <button id="clear-btn" class="power-up" title="Clear: Remove lowest value tile">💫 x<span id="clear-count">1</span></button>
-            </div>
-        </div>
-
-        <div class="daily-challenge" id="daily-challenge">
-            <h3>Daily Challenge</h3>
-            <div class="challenge-info">
-                <span id="challenge-description">Loading...</span>
-                <div class="challenge-progress">Progress: <span id="challenge-progress">0/1</span></div>
-            </div>
+            <div id="time-attack-timer" class="timer"></div>
         </div>
 
         <div class="game-container">
             <div id="grid"></div>
             <div id="special-tile-alert" class="special-tile-alert"></div>
+        </div>
+
+        <div class="game-footer">
+            <div class="power-ups">
+                <button id="freeze-power" class="power-up-btn">🧊 Freeze (3)</button>
+                <button id="merge-power" class="power-up-btn">🔄 Merge (2)</button>
+                <button id="clear-power" class="power-up-btn">💫 Clear (1)</button>
+            </div>
+            <div class="game-stats">
+                <div id="moves">Moves: 0</div>
+                <div id="time">Time: 0:00</div>
+                <div id="max-combo">Best Combo: 0x</div>
+            </div>
         </div>
 
         <div class="controls">

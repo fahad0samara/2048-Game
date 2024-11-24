@@ -3,13 +3,29 @@ class Game2048 {
         this.gridSize = gridSize;
         this.grid = [];
         this.score = 0;
+        this.moves = 0;
+        this.gameMode = localStorage.getItem('gameMode') || 'classic';
+        this.timeAttackTimeLeft = 180; // 3 minutes for Time Attack mode
+        this.infinityMode = false;
+        this.comboCount = 0;
+        this.maxCombo = parseInt(localStorage.getItem('maxCombo')) || 0;
         this.bestScore = parseInt(localStorage.getItem('bestScore')) || 0;
+        this.gamesPlayed = parseInt(localStorage.getItem('gamesPlayed')) || 0;
+        this.bestTime = localStorage.getItem('bestTime') || null;
+        this.highestTile = parseInt(localStorage.getItem('highestTile')) || 0;
         this.gameStarted = false;
         this.moveHistory = [];
         this.startTime = null;
         this.timerInterval = null;
         this.soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
         this.achievements = new Set(JSON.parse(localStorage.getItem('achievements')) || []);
+        this.powerUps = {
+            freeze: parseInt(localStorage.getItem('freezePowerUp')) || 3,
+            merge: parseInt(localStorage.getItem('mergePowerUp')) || 2,
+            clear: parseInt(localStorage.getItem('clearPowerUp')) || 1
+        };
+        this.freezeMovesLeft = 0;
+        this.specialTileSpawned = false;
         
         this.initGrid();
         this.setupEventListeners();
@@ -20,12 +36,105 @@ class Game2048 {
         this.setupGameTips();
         this.updateSoundButton();
         this.renderAchievements();
+        this.updatePowerUpCounts();
+        this.setupThemes();
+        this.setupGameModes();
+        this.setupDailyChallenge();
     }
 
-    initGrid() {
-        this.grid = Array(this.gridSize).fill().map(() => 
-            Array(this.gridSize).fill(0)
-        );
+    setupThemes() {
+        const theme = localStorage.getItem('theme') || 'classic';
+        document.body.setAttribute('data-theme', theme);
+        document.getElementById('theme-selector').value = theme;
+
+        document.getElementById('theme-selector').addEventListener('change', (e) => {
+            const newTheme = e.target.value;
+            document.body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            this.playSound('move');
+        });
+    }
+
+    setupDailyChallenge() {
+        const today = new Date().toDateString();
+        const lastChallenge = localStorage.getItem('lastChallenge');
+        const challengeProgress = parseInt(localStorage.getItem('challengeProgress')) || 0;
+
+        if (today !== lastChallenge) {
+            // Generate new daily challenge
+            const challenges = [
+                { description: "Reach 256 in under 50 moves", goal: 256, moves: 50, type: 'tile' },
+                { description: "Score 1000 points in 2 minutes", goal: 1000, time: 120, type: 'score' },
+                { description: "Merge 20 tiles", goal: 20, type: 'merges' },
+                { description: "Get three 128 tiles at once", goal: 3, value: 128, type: 'multiple' }
+            ];
+
+            const dailyChallenge = challenges[Math.floor(Math.random() * challenges.length)];
+            localStorage.setItem('dailyChallenge', JSON.stringify(dailyChallenge));
+            localStorage.setItem('lastChallenge', today);
+            localStorage.setItem('challengeProgress', '0');
+            this.updateChallengeDisplay(dailyChallenge, 0);
+        } else {
+            const dailyChallenge = JSON.parse(localStorage.getItem('dailyChallenge'));
+            this.updateChallengeDisplay(dailyChallenge, challengeProgress);
+        }
+    }
+
+    updateChallengeDisplay(challenge, progress) {
+        document.getElementById('challenge-description').textContent = challenge.description;
+        document.getElementById('challenge-progress').textContent = `${progress}/${challenge.goal}`;
+    }
+
+    checkChallengeProgress() {
+        const challenge = JSON.parse(localStorage.getItem('dailyChallenge'));
+        let progress = parseInt(localStorage.getItem('challengeProgress')) || 0;
+
+        switch (challenge.type) {
+            case 'tile':
+                if (this.moves <= challenge.moves) {
+                    const hasTargetTile = this.grid.some(row => 
+                        row.some(cell => cell === challenge.goal)
+                    );
+                    if (hasTargetTile) {
+                        progress = 1;
+                    }
+                }
+                break;
+            case 'score':
+                if ((Date.now() - this.startTime) / 1000 <= challenge.time) {
+                    if (this.score >= challenge.goal) {
+                        progress = 1;
+                    }
+                }
+                break;
+            case 'merges':
+                progress = Math.min(challenge.goal, progress + 1);
+                break;
+            case 'multiple':
+                const count = this.grid.flat().filter(cell => cell === challenge.value).length;
+                progress = count >= challenge.goal ? 1 : 0;
+                break;
+        }
+
+        localStorage.setItem('challengeProgress', progress);
+        this.updateChallengeDisplay(challenge, progress);
+
+        if (progress >= 1 && !this.achievements.has('daily_champion')) {
+            this.achievements.add('daily_champion');
+            localStorage.setItem('achievements', JSON.stringify([...this.achievements]));
+            this.showAchievement({ emoji: '🌟', text: 'Daily Champion: Completed a daily challenge!' });
+            this.playSound('achievement');
+        }
+    }
+
+    updatePowerUpCounts() {
+        document.getElementById('freeze-count').textContent = this.powerUps.freeze;
+        document.getElementById('merge-count').textContent = this.powerUps.merge;
+        document.getElementById('clear-count').textContent = this.powerUps.clear;
+        
+        document.getElementById('freeze-btn').disabled = this.powerUps.freeze === 0;
+        document.getElementById('merge-btn').disabled = this.powerUps.merge === 0;
+        document.getElementById('clear-btn').disabled = this.powerUps.clear === 0;
     }
 
     setupEventListeners() {
@@ -91,6 +200,10 @@ class Game2048 {
         document.getElementById('sound-btn').addEventListener('click', () => {
             this.toggleSound();
         });
+
+        document.getElementById('freeze-btn').addEventListener('click', () => this.usePowerUp('freeze'));
+        document.getElementById('merge-btn').addEventListener('click', () => this.usePowerUp('merge'));
+        document.getElementById('clear-btn').addEventListener('click', () => this.usePowerUp('clear'));
     }
 
     startGame() {
@@ -126,7 +239,8 @@ class Game2048 {
         const sounds = {
             merge: [440, 0.1],
             move: [220, 0.05],
-            achievement: [660, 0.15]
+            achievement: [660, 0.15],
+            powerup: [880, 0.1]
         };
 
         const [frequency, duration] = sounds[type] || sounds.move;
@@ -146,6 +260,9 @@ class Game2048 {
     }
 
     move(direction) {
+        this.moves++;
+        document.getElementById('moves').textContent = this.moves;
+
         // Save current state for undo
         this.moveHistory.push({
             grid: JSON.parse(JSON.stringify(this.grid)),
@@ -167,6 +284,7 @@ class Game2048 {
                     moved = true;
                     this.playSound('merge');
                     this.checkAchievement(row[c]);
+                    this.updateCombo(true);
                 }
             }
             
@@ -180,11 +298,27 @@ class Game2048 {
         this.grid = this.unrotateGrid(rotatedGrid, direction);
         
         if (moved) {
-            this.addRandomTile();
+            if (!this.freezeMovesLeft) {
+                this.addRandomTile();
+            } else {
+                this.freezeMovesLeft--;
+                if (this.freezeMovesLeft === 0) {
+                    this.showSpecialAlert('❄️ Freeze power-up ended!');
+                }
+            }
+
+            // Special tile logic (1% chance)
+            if (!this.specialTileSpawned && Math.random() < 0.01) {
+                this.addSpecialTile();
+            }
+
             this.renderGrid();
             this.updateScores();
             this.checkGameStatus();
+            this.checkChallengeProgress();
             this.playSound('move');
+        } else {
+            this.updateCombo(false);
         }
     }
 
@@ -274,6 +408,7 @@ class Game2048 {
     restartGame() {
         this.grid = [];
         this.score = 0;
+        this.moves = 0;
         this.gameStarted = false;
         this.moveHistory = [];
         this.startTime = null;
@@ -287,6 +422,7 @@ class Game2048 {
         this.showGameTip("New game started! Good luck!");
         document.getElementById('undo-btn').disabled = true;
         document.getElementById('time').textContent = '00:00';
+        document.getElementById('moves').textContent = '0';
     }
 
     addRandomTile() {
@@ -350,8 +486,13 @@ class Game2048 {
                 tileElement.classList.add('tile');
                 
                 if (tileValue !== 0) {
-                    tileElement.textContent = tileValue;
-                    tileElement.classList.add(`tile-${tileValue}`);
+                    if (tileValue === 'S') {
+                        tileElement.textContent = '★';
+                        tileElement.classList.add('special');
+                    } else {
+                        tileElement.textContent = tileValue;
+                        tileElement.classList.add(`tile-${tileValue}`);
+                    }
                     tileElement.classList.add('new-tile');
                 }
                 
@@ -408,6 +549,164 @@ class Game2048 {
             }
         }
         return false;
+    }
+
+    usePowerUp(type) {
+        if (this.powerUps[type] <= 0) return;
+
+        switch (type) {
+            case 'freeze':
+                this.freezeMovesLeft = 3;
+                this.powerUps.freeze--;
+                this.showSpecialAlert('❄️ Freeze activated! No new tiles for 3 moves!');
+                break;
+            case 'merge':
+                this.activateMergePowerUp();
+                this.powerUps.merge--;
+                break;
+            case 'clear':
+                this.clearLowestTile();
+                this.powerUps.clear--;
+                break;
+        }
+
+        localStorage.setItem(`${type}PowerUp`, this.powerUps[type]);
+        this.updatePowerUpCounts();
+        this.playSound('powerup');
+    }
+
+    activateMergePowerUp() {
+        const tiles = document.querySelectorAll('.tile');
+        tiles.forEach(tile => {
+            if (tile.textContent) {
+                tile.classList.add('mergeable');
+                tile.addEventListener('click', this.handleMergePowerUp);
+            }
+        });
+        this.showSpecialAlert('🔄 Click two adjacent tiles to merge them!');
+    }
+
+    handleMergePowerUp(e) {
+        // Implementation for merging selected tiles
+        // This would need to track clicked tiles and merge them if adjacent
+    }
+
+    clearLowestTile() {
+        let lowestValue = Infinity;
+        let lowestPos = null;
+
+        for (let r = 0; r < this.gridSize; r++) {
+            for (let c = 0; c < this.gridSize; c++) {
+                if (this.grid[r][c] !== 0 && this.grid[r][c] < lowestValue) {
+                    lowestValue = this.grid[r][c];
+                    lowestPos = {r, c};
+                }
+            }
+        }
+
+        if (lowestPos) {
+            this.grid[lowestPos.r][lowestPos.c] = 0;
+            this.renderGrid();
+            this.showSpecialAlert('💫 Lowest tile cleared!');
+        }
+    }
+
+    showSpecialAlert(message) {
+        const alert = document.getElementById('special-tile-alert');
+        alert.textContent = message;
+        alert.classList.add('show');
+        setTimeout(() => alert.classList.remove('show'), 2000);
+    }
+
+    addSpecialTile() {
+        const emptyCells = [];
+        for (let r = 0; r < this.gridSize; r++) {
+            for (let c = 0; c < this.gridSize; c++) {
+                if (this.grid[r][c] === 0) {
+                    emptyCells.push({r, c});
+                }
+            }
+        }
+
+        if (emptyCells.length > 0) {
+            const {r, c} = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            this.grid[r][c] = 'S';  // Special tile
+            this.specialTileSpawned = true;
+            this.showSpecialAlert('✨ Special tile spawned! Merge to get bonus points!');
+        }
+    }
+
+    updateStats() {
+        this.gamesPlayed++;
+        localStorage.setItem('gamesPlayed', this.gamesPlayed);
+        document.getElementById('games-played').textContent = this.gamesPlayed;
+
+        const currentTime = Math.floor((Date.now() - this.startTime) / 1000);
+        if (!this.bestTime || currentTime < parseInt(this.bestTime)) {
+            this.bestTime = currentTime;
+            localStorage.setItem('bestTime', this.bestTime);
+            const minutes = Math.floor(this.bestTime / 60);
+            const seconds = this.bestTime % 60;
+            document.getElementById('best-time').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        const currentHighest = Math.max(...this.grid.flat());
+        if (currentHighest > this.highestTile) {
+            this.highestTile = currentHighest;
+            localStorage.setItem('highestTile', this.highestTile);
+            document.getElementById('highest-tile').textContent = this.highestTile;
+        }
+    }
+
+    setupGameModes() {
+        const modeSelector = document.getElementById('game-mode-selector');
+        modeSelector.value = this.gameMode;
+        
+        modeSelector.addEventListener('change', (e) => {
+            this.gameMode = e.target.value;
+            localStorage.setItem('gameMode', this.gameMode);
+            this.resetGame();
+            
+            if (this.gameMode === 'timeAttack') {
+                this.startTimeAttackMode();
+            } else if (this.gameMode === 'infinity') {
+                this.infinityMode = true;
+            }
+        });
+    }
+
+    startTimeAttackMode() {
+        this.timeAttackTimeLeft = 180;
+        clearInterval(this.timeAttackInterval);
+        this.timeAttackInterval = setInterval(() => {
+            this.timeAttackTimeLeft--;
+            this.updateTimeAttackDisplay();
+            if (this.timeAttackTimeLeft <= 0) {
+                this.gameOver('Time\'s up!');
+            }
+        }, 1000);
+    }
+
+    updateTimeAttackDisplay() {
+        const minutes = Math.floor(this.timeAttackTimeLeft / 60);
+        const seconds = this.timeAttackTimeLeft % 60;
+        document.getElementById('time-attack-timer').textContent = 
+            `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    updateCombo(merged) {
+        if (merged) {
+            this.comboCount++;
+            if (this.comboCount > this.maxCombo) {
+                this.maxCombo = this.comboCount;
+                localStorage.setItem('maxCombo', this.maxCombo);
+            }
+            this.score += this.comboCount * 10; // Bonus points for combos
+        } else {
+            this.comboCount = 0;
+        }
+        document.getElementById('combo-counter').textContent = `Combo: ${this.comboCount}x`;
     }
 }
 
