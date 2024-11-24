@@ -30,8 +30,42 @@
         </div>
 
         <div class="game-container">
+            <div class="power-meter-container">
+                <div class="power-meter-label">Ultimate Power</div>
+                <div class="power-meter-track">
+                    <div id="power-meter" class="power-meter-fill"></div>
+                </div>
+            </div>
             <div id="grid"></div>
             <div id="special-tile-alert" class="special-tile-alert"></div>
+            <div class="streak-counter" id="streak-counter">Streak: 0x</div>
+            <div class="multiplier-display" id="multiplier-display">x1</div>
+        </div>
+
+        <div class="game-controls">
+            <div class="ultimate-button" id="ultimate-button" disabled>
+                <span class="ultimate-icon">⚡</span>
+                Ultimate Power
+            </div>
+            
+            <div class="special-tiles-info">
+                <div class="special-tile-type">
+                    <span class="tile-icon x2">x2</span>
+                    Score Multiplier
+                </div>
+                <div class="special-tile-type">
+                    <span class="tile-icon bomb">💣</span>
+                    Area Clear
+                </div>
+                <div class="special-tile-type">
+                    <span class="tile-icon wild">🌟</span>
+                    Wild Transform
+                </div>
+                <div class="special-tile-type">
+                    <span class="tile-icon golden">👑</span>
+                    Golden Power
+                </div>
+            </div>
         </div>
 
         <div class="game-footer">
@@ -69,6 +103,13 @@
             <div id="achievements" class="achievements">
                 <h3>Achievements</h3>
                 <div id="achievements-list"></div>
+            </div>
+        </div>
+
+        <div class="challenge-panel" id="challenge-panel">
+            <h3>Daily Challenges</h3>
+            <div class="challenge-list" id="challenge-list">
+                <!-- Challenges will be dynamically added here -->
             </div>
         </div>
     </div>
